@@ -13,6 +13,8 @@ straight-forward so far, though it is a challenge to change my thinking from the
 
 ## 1/6/2022
 
+![demo of pong game progress](/demo/cpp_pong.gif)
+
 i've implemented basic left-to-right collision detection. the game gets reset if the ball passes either paddle. the direction the ball goes in to start the game
 is chosen by a crude random number contrivance based on the parity of a rand i stuck at the beginning of the game. cpp is starting to become a bit easier to
 wield. my goal is to be as comfortable with it as i am with java. the greatest challenge will be in understanding cpp oop conventions in apis and libraries.
