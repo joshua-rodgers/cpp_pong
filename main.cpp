@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <ctime>
 
 class Game_Object
 {
@@ -9,7 +10,7 @@ class Game_Object
 		float top;
 		float bottom;
 		float speed;
-
+		std::string type;
 };
 
 class Paddle : public Game_Object
@@ -18,15 +19,25 @@ class Paddle : public Game_Object
 		int score = 0;
 		bool is_moving_up = false;
 		bool is_moving_down = false;
+		float edge = 0;
+		char side = ' ';
 		
 		Paddle() {};
-		Paddle(float x_position, float y_position, float width, float height, float speed) : score(0)
+		Paddle(float x_position, float y_position, float width, float height, float speed, char side) : score(0)
 		{
 			position = sf::Vector2f(x_position, y_position);
 			size = sf::Vector2f(width, height);
 			top = position.y;
 			bottom = position.y + size.y;
 			this->speed = speed;
+			this->side = side;
+			this->type = "paddle";
+
+			if (side == 'l')
+				edge = position.x + size.x;
+
+			if (side == 'r')
+				edge = position.x;
 		}
 		
 };
@@ -34,11 +45,18 @@ class Paddle : public Game_Object
 class Ball : public Game_Object
 {
 	public:
+		float x_speed = 0;
+		float y_speed = 0;
+		int direction = 1;
+		float right_edge = 0;
+		float left_edge = 0;
+
 		Ball(){}
 		Ball(float x_position, float y_position, float width, float height, int speed)
 		{
 			position = sf::Vector2f(x_position, y_position);
 			size = sf::Vector2f(width, height);
+			this->type = "ball";
 		}
 };
 
@@ -58,13 +76,26 @@ class Game
 		{
 			this->window_width = window_width;
 			this->window_height = window_height;
-			player_1 = Paddle(window_width - paddle_width, window_height / 2, paddle_width, paddle_height, paddle_speed);
-			player_2 = Paddle(0, window_height / 2, paddle_width, paddle_height, paddle_speed);
+			player_1 = Paddle(window_width - paddle_width, window_height / 2, paddle_width, paddle_height, paddle_speed, 'r');
+			player_2 = Paddle(0, window_height / 2, paddle_width, paddle_height, paddle_speed, 'l');
+			
 			game_ball = Ball(window_width / 2, window_height / 2, 10, 10, ball_speed);
+			game_ball.x_speed = ball_speed;
+
+			std::srand(std::time(nullptr));
+			int rand_value = std::rand();
+			if (rand_value % 2 == 0)
+				game_ball.direction = -game_ball.direction;
 		}
 
 		void update()
 		{
+			//move the game ball
+			game_ball.position.x += (game_ball.x_speed * game_ball.direction);
+			game_ball.position.y += (game_ball.y_speed * game_ball.direction);
+			update_edges(game_ball);
+
+			// move the paddle first regardless..
 			if (player_1.is_moving_up)
 			{
 				player_1.position.y -= player_1.speed;
@@ -76,18 +107,20 @@ class Game
 				update_edges(player_1);
 			}
 			
+			// check if paddle passed top edge and place it back in bounds if so...
 			if (player_1.top < 0)
 			{
 				update_edges(player_1, 0);
 				player_1.position.y = 0;
 			}
-
+			// same for bottom edge
 			if (player_1.bottom > this->window_height)
 			{
 				update_edges(player_1, window_height - player_1.size.y);
 				player_1.position.y = player_1.top;	
 			}
 			
+			// player_2's logic is identical, beyond the trivial note...
 			if (player_2.is_moving_up)
 			{
 				player_2.position.y -= player_2.speed;
@@ -118,6 +151,32 @@ class Game
 
 		void check_collisions()
 		{
+			if (game_ball.right_edge >= player_1.edge)
+			{
+				if (game_ball.bottom > player_1.top && game_ball.top < player_1.bottom)
+				{
+					game_ball.direction = -game_ball.direction;
+				}
+				else
+				{
+					reset_game_objects();
+				}
+					
+			}
+			else if (game_ball.left_edge <= player_2.edge)
+			{
+
+				if (game_ball.bottom > player_2.top && game_ball.top < player_2.bottom)
+				{
+					game_ball.direction = -game_ball.direction;
+				}
+				else
+				{
+					reset_game_objects();
+				}
+					
+			}
+			
 
 		}
 
@@ -145,27 +204,78 @@ class Game
 		}
 
 		private:
-			void update_edges(Game_Object &obj)
+			void update_edges(Paddle &obj)
 			{
 				obj.top = obj.position.y;
 				obj.bottom = obj.top + obj.size.y;
-				//std::cout << "obj.top: " << obj.top << std::endl;
-				//std::cout << "obj.bottom: " << obj.bottom << std::endl;
+				switch (obj.side)
+				{
+					case 'l':
+						obj.edge = obj.position.x + obj.size.x;
+						break;
+					case 'r':
+						obj.edge = obj.position.x;
+						break;
+				}	
 			}
 
-			void update_edges(Game_Object& obj, float new_y_position)
+			void update_edges(Paddle &obj, float new_y_position)
 			{
 				obj.top = new_y_position;
 				obj.bottom = obj.top + obj.size.y;
-				//std::cout << "from overload obj.top: " << obj.top << std::endl;
-				//std::cout << "from overload obj.bottom: " << obj.bottom << std::endl;
+
+				switch (obj.side)
+				{
+					case 'l':
+						obj.edge = obj.position.x + obj.size.x;
+						break;
+					case 'r':
+						obj.edge = obj.position.x;
+						break;
+				}
+			}
+
+			void update_edges(Ball &obj)
+			{
+				obj.top = obj.position.y;
+				obj.bottom = obj.top + obj.size.y;
+				obj.left_edge = obj.position.x;
+				obj.right_edge = obj.position.x + obj.size.x;
+			}
+
+			void update_edges(Ball& obj, float new_y_position)
+			{
+				obj.top = new_y_position;
+				obj.bottom = obj.top + obj.size.y;
+				obj.left_edge = obj.position.x;
+				obj.right_edge = obj.position.x + obj.size.x;
+			}
+
+			void update_edges(Ball& obj, float new_y_position, float new_x_position)
+			{
+				obj.top = new_y_position;
+				obj.bottom = obj.top + obj.size.y;
+				obj.left_edge = new_x_position;
+				obj.right_edge = obj.left_edge + obj.size.x;
+			}
+
+			void reset_game_objects()
+			{
+				game_ball.position.x = window_width / 2;
+				game_ball.position.y = window_height / 2;
+				player_1.position = sf::Vector2f(window_width - player_1.size.x, window_height / 2);
+				player_2.position = sf::Vector2f(0, window_height / 2);
+				update_edges(player_1);
+				update_edges(player_2);
+				update_edges(game_ball);
 			}
 };
 
 int main()
 {
 	
-	Game pong(300, 300, 10, 50, 10, 10);
+
+	Game pong(300, 300, 10, 50, 2, 10);
 
 	
 	while (pong.window.isOpen())
@@ -216,6 +326,7 @@ int main()
 			}
 		}
 		pong.update();
+		pong.check_collisions();
 		pong.render();
 		sf::sleep(sf::milliseconds(50));
 	}
