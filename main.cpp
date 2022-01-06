@@ -1,4 +1,3 @@
-#include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
@@ -66,64 +65,53 @@ class Game
 
 		void update()
 		{
-			if (player_1.position.y >= 0 && player_1.position.y + player_1.size.y <= window_height)
+			if (player_1.is_moving_up)
 			{
-				if (player_1.is_moving_up)
-				{
-					player_1.position.y -= player_1.speed;
-					player_1.top = player_1.position.y;
-					player_1.bottom = player_1.top + player_1.size.y;
-				}
-				else if (player_1.is_moving_down)
-				{
-					player_1.position.y += player_1.speed;
-					player_1.top = player_1.position.y;
-					player_1.bottom = player_1.top + player_1.size.y;
-				}
+				player_1.position.y -= player_1.speed;
+				update_edges(player_1);
 			}
-			
+			else if (player_1.is_moving_down)
+			{
+				player_1.position.y += player_1.speed;
+				update_edges(player_1);
+			}
 			
 			if (player_1.top < 0)
 			{
+				update_edges(player_1, 0);
 				player_1.position.y = 0;
-				player_1.top = 0;
 			}
 
 			if (player_1.bottom > this->window_height)
 			{
-				player_1.position.y += (window_height - player_1.bottom);
-				player_1.top = player_1.position.y;
-				player_1.bottom = player_1.top + player_1.size.y;
+				update_edges(player_1, window_height - player_1.size.y);
+				player_1.position.y = player_1.top;	
 			}
-				
 			
-			if (player_2.position.y >= 0 && player_2.position.y + player_2.size.y <= window_height)
+			if (player_2.is_moving_up)
 			{
-				if (player_2.is_moving_up)
-				{
-					player_2.position.y -= player_2.speed;
-					player_2.top = player_2.position.y;
-					player_2.bottom = player_2.top + player_2.size.y;
-				}
-				else if (player_2.is_moving_down)
-				{
-					player_2.position.y += player_2.speed;
-					player_2.top = player_2.position.y;
-					player_2.bottom = player_2.top + player_2.size.y;
-				}
+				player_2.position.y -= player_2.speed;
+				update_edges(player_2);
 			}
+			else if (player_2.is_moving_down)
+			{
+				player_2.position.y += player_2.speed;
+				update_edges(player_2);
+			}
+			
 
 			if (player_2.top < 0)
 			{
 				player_2.position.y = 0;
-				player_2.top = 0;
+				update_edges(player_2, 0);
 			}
 
 			if (player_2.bottom > this->window_height)
 			{
+				// this differs from player_1's logic simply to acknowledge that i 
+				// found the cause of a semmingly weird bug XD
 				player_2.position.y += (window_height - player_2.bottom);
-				player_2.top = player_2.position.y;
-				player_2.bottom = player_2.top + player_2.size.y;
+				update_edges(player_2, player_2.position.y);
 			}
 
 		}
@@ -155,6 +143,23 @@ class Game
 
 			window.display();
 		}
+
+		private:
+			void update_edges(Game_Object &obj)
+			{
+				obj.top = obj.position.y;
+				obj.bottom = obj.top + obj.size.y;
+				//std::cout << "obj.top: " << obj.top << std::endl;
+				//std::cout << "obj.bottom: " << obj.bottom << std::endl;
+			}
+
+			void update_edges(Game_Object& obj, float new_y_position)
+			{
+				obj.top = new_y_position;
+				obj.bottom = obj.top + obj.size.y;
+				//std::cout << "from overload obj.top: " << obj.top << std::endl;
+				//std::cout << "from overload obj.bottom: " << obj.bottom << std::endl;
+			}
 };
 
 int main()
