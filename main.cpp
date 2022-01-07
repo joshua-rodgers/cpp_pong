@@ -20,6 +20,8 @@ class Paddle : public Game_Object
 		bool is_moving_up = false;
 		bool is_moving_down = false;
 		float edge = 0;
+		float paddle_segment[8];
+
 		char side = ' ';
 		
 		Paddle() {};
@@ -38,6 +40,8 @@ class Paddle : public Game_Object
 
 			if (side == 'r')
 				edge = position.x;
+
+
 		}
 		
 };
@@ -72,7 +76,7 @@ class Game
 		Paddle player_1;
 		Paddle player_2;
 
-		Game(float window_width, float window_height, float paddle_width, float paddle_height, int ball_speed, int paddle_speed) : window(sf::VideoMode(300, 300), "Pong")
+		Game(float window_width, float window_height, float paddle_width, float paddle_height, int ball_speed, int paddle_speed) : window(sf::VideoMode(window_width, window_height), "Pong")
 		{
 			this->window_width = window_width;
 			this->window_height = window_height;
@@ -132,7 +136,6 @@ class Game
 				update_edges(player_2);
 			}
 			
-
 			if (player_2.top < 0)
 			{
 				player_2.position.y = 0;
@@ -155,6 +158,7 @@ class Game
 			{
 				if (game_ball.bottom > player_1.top && game_ball.top < player_1.bottom)
 				{
+					get_trajectory(1);
 					game_ball.direction = -game_ball.direction;
 				}
 				else
@@ -269,15 +273,17 @@ class Game
 				update_edges(player_2);
 				update_edges(game_ball);
 			}
+
+			void get_trajectory(int player)
+			{
+
+			}
 };
 
 int main()
 {
-	
+	Game pong(800, 600, 10, 50, 10, 10);
 
-	Game pong(300, 300, 10, 50, 2, 10);
-
-	
 	while (pong.window.isOpen())
 	{
 		while (pong.window.pollEvent(pong.event))
