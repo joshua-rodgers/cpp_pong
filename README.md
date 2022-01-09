@@ -30,3 +30,14 @@ into view. the dynamic paddle for some reason is sort of a hang up for me ever s
 even though i could probably get away with just having the departure angle of the ball be random whenever it contacts a surface, i *have* to implement that feature.
 i like the feature i think because it actually makes the game a game of skill in that you can be intentional as to your placement of the ball. i intend to keep adding
 features to the game until i lose interest so maybe there could be power-ups? classes will start soon so i likely won't have time at that point though.
+
+
+## 1/08/2022
+i've implemented bounces off upper and lower walls. the paddle is now divided into 8 segments with each sending the ball on a different
+predictable y trajectory. at this point the game is completely playable, it's simply missing some basic enhancements such as the
+ball speed increasing on each volley and a scoreboard. i have to decide how far i want to go now. since im using sfml, adding sounds
+wouldn't be difficult im pretty sure, im just feeling motivation begin to seep away as i've accomplished my goal of getting comfortable
+with cpp before classes begin. i think i'll build something else totally different to get some experience with cpp data structures
+since i didn't end up using anything beyond classes and primitives here, not even arrays. naybe if i can see a way to do that with some
+of the enhancements ive had in mind such as powerups, i may just extend this littl project for that purpose. i could definitely do some
+cleanup and restructuring here and there.

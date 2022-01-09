@@ -20,7 +20,7 @@ class Paddle : public Game_Object
 		bool is_moving_up = false;
 		bool is_moving_down = false;
 		float edge = 0;
-		float paddle_segment[8];
+		float segment_size = 0;
 
 		char side = ' ';
 		
@@ -41,7 +41,9 @@ class Paddle : public Game_Object
 			if (side == 'r')
 				edge = position.x;
 
-
+			segment_size = std::floor(height / 8);
+			std::cout << segment_size << '\n';
+			
 		}
 		
 };
@@ -96,7 +98,7 @@ class Game
 		{
 			//move the game ball
 			game_ball.position.x += (game_ball.x_speed * game_ball.direction);
-			game_ball.position.y += (game_ball.y_speed * game_ball.direction);
+			game_ball.position.y += game_ball.y_speed;
 			update_edges(game_ball);
 
 			// move the paddle first regardless..
@@ -158,7 +160,7 @@ class Game
 			{
 				if (game_ball.bottom > player_1.top && game_ball.top < player_1.bottom)
 				{
-					get_trajectory(1);
+					get_trajectory(player_1);
 					game_ball.direction = -game_ball.direction;
 				}
 				else
@@ -172,6 +174,7 @@ class Game
 
 				if (game_ball.bottom > player_2.top && game_ball.top < player_2.bottom)
 				{
+					get_trajectory(player_2);
 					game_ball.direction = -game_ball.direction;
 				}
 				else
@@ -179,6 +182,16 @@ class Game
 					reset_game_objects();
 				}
 					
+			}
+			else if (game_ball.top <= 0)
+			{
+				
+				game_ball.y_speed = -game_ball.y_speed;
+			}
+			else if (game_ball.bottom >= window_height)
+			{
+				
+				game_ball.y_speed = -game_ball.y_speed;
 			}
 			
 
@@ -267,6 +280,7 @@ class Game
 			{
 				game_ball.position.x = window_width / 2;
 				game_ball.position.y = window_height / 2;
+				game_ball.y_speed = 0;
 				player_1.position = sf::Vector2f(window_width - player_1.size.x, window_height / 2);
 				player_2.position = sf::Vector2f(0, window_height / 2);
 				update_edges(player_1);
@@ -274,15 +288,44 @@ class Game
 				update_edges(game_ball);
 			}
 
-			void get_trajectory(int player)
+			void get_trajectory(Paddle &player)
 			{
+				float location = game_ball.bottom - player.top;
+				float segment = std::ceil(location / player.segment_size);
 
+				switch ((int)segment)
+				{
+					case 1:
+						game_ball.y_speed = -4;
+						break;
+					case 2:
+						game_ball.y_speed = -5;
+						break;
+					case 3:
+						game_ball.y_speed = 0;
+						break;
+					case 4:
+						game_ball.y_speed = -3;
+						break;
+					case 5:
+						game_ball.y_speed = 3;
+						break;
+					case 6:
+						game_ball.y_speed = 0;
+						break;
+					case 7:
+						game_ball.y_speed = 5;
+						break;
+					case 8:
+						game_ball.y_speed = 4 ;
+						break;
+				}
 			}
 };
 
 int main()
 {
-	Game pong(800, 600, 10, 50, 10, 10);
+	Game pong(800, 600, 10, 96, 15, 10);
 
 	while (pong.window.isOpen())
 	{
